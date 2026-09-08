@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Oportunidades — Pré-Venda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#181D27;
+    --panel:#1E2530;
+    --panel-2:#262E3A;
+    --border:#333C4A;
+    --text:#FFFFFF;
+    --text-dim:#B7B5B6;
+    --accent:#567AB8;
+    --accent-deep:#235094;
+    --accent-dim:#1C3252;
+    --ok:#53A451;
+    --warn:#CB762E;
+    --danger:#DC3543;
+    --font-sans:'Inter',Helvetica,Arial,sans-serif;
+    --font-display:'DM Sans','Inter',Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+    padding:40px 48px 80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    border-bottom:1px solid var(--border);
+    padding-bottom:24px;
+    margin-bottom:32px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .brand-logo{
+    height:30px;
+    width:auto;
+    display:block;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:28px;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+    line-height:1.25;
+  }
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:14px;
+  }
+  .status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-dim);
+  }
+  .dot.stale{background:var(--warn);box-shadow:0 0 0 3px rgba(203,118,46,0.25);}
+  .dot.loading{background:var(--text-dim);box-shadow:none;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  button{
+    font-family:var(--font-sans);
+    font-size:13px;
+    font-weight:500;
+    color:var(--text);
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button:disabled{opacity:.5;cursor:default;}
+  .cta-arrow{color:var(--warn);}
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+    margin-bottom:40px;
+  }
+  .kpi{background:var(--panel);padding:20px 24px;}
+  .kpi-label{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+  .kpi-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:24px;
+    font-weight:500;
+    color:var(--text);
+  }
+  .kpi-value.accent{color:var(--accent);}
+
+  @media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+  .grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    margin-bottom:40px;
+    align-items:stretch;
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:24px;
+  }
+  .panel-title{
+    font-family:var(--font-display);
+    font-size:14px;
+    font-weight:600;
+    margin:0 0 20px;
+    color:var(--text);
+  }
+
+  .cards-legend{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .cards-legend span.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;}
+  .cards-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:14px;
+    align-items:stretch;
+  }
+  .opp-card{
+    display:flex;
+    flex-direction:column;
+    min-height:150px;
+    border-radius:8px;
+    padding:16px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-left:3px solid var(--text-dim);
+  }
+  .opp-card.status-yellow{
+    background:rgba(203,118,46,0.12);
+    border-left-color:var(--warn);
+  }
+  .opp-card.status-red{
+    background:rgba(220,53,67,0.12);
+    border-left-color:var(--danger);
+  }
+  .opp-card.status-normal{
+    border-left-color:var(--ok);
+  }
+  .opp-name{
+    font-size:13px;
+    font-weight:500;
+    color:var(--text);
+    margin-bottom:10px;
+    line-height:1.4;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .opp-field{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-dim);margin-bottom:5px;}
+  .opp-field b{color:var(--text);font-weight:500;text-align:right;}
+  .opp-days{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    margin-top:auto;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+  }
+  .opp-days.status-yellow{color:var(--warn);}
+  .opp-days.status-red{color:var(--danger);}
+  .opp-days.status-normal{color:var(--text-dim);}
+
+  .chart-panel{display:flex;flex-direction:column;min-height:0;min-width:0;}
+  .chart-wrap{position:relative;height:250px;flex:0 0 250px;min-height:0;overflow:hidden;}
+  .panel-hint{font-size:11px;color:var(--text-dim);margin:2px 0 16px;}
+  .detail-list{
+    margin-top:16px;
+    border-top:1px solid var(--border);
+    padding-top:12px;
+    height:180px;
+    flex:0 0 180px;
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:var(--border) transparent;
+  }
+  .detail-list::-webkit-scrollbar{width:6px;}
+  .detail-list::-webkit-scrollbar-track{background:transparent;}
+  .detail-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  .detail-list::-webkit-scrollbar-thumb:hover{background:var(--text-dim);}
+  .detail-list::-webkit-scrollbar-button{display:none;height:0;width:0;}
+  .detail-empty{font-size:12px;color:var(--text-dim);}
+  .detail-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:12px;
+    font-weight:500;
+    color:var(--text);
+    margin-bottom:8px;
+  }
+  .detail-clear{
+    font-family:var(--font-sans);
+    font-size:11px;
+    font-weight:500;
+    color:var(--text-dim);
+    background:none;
+    border:none;
+    border-radius:0;
+    padding:2px 0;
+    cursor:pointer;
+  }
+  .detail-clear:hover{color:var(--accent);border:none;}
+  .detail-item{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:12px;
+    padding:6px 0;
+    border-bottom:1px solid var(--border);
+    color:var(--text);
+  }
+  .detail-item:last-child{border-bottom:none;}
+  .detail-item span{color:var(--text-dim);white-space:nowrap;font-size:11px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;
+    font-weight:500;
+    color:var(--text-dim);
+    font-size:11px;
+    padding:0 12px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td.num{font-family:'IBM Plex Mono',monospace;text-align:right;white-space:nowrap;}
+  td.tag{color:var(--text-dim);font-size:12px;}
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:4px;
+    background:var(--panel-2);
+    color:var(--text-dim);
+    border:1px solid var(--border);
+  }
+  footer{margin-top:32px;font-size:12px;color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">
+        <img class="brand-logo" src="data:image/png;base64,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" alt="Avantia — Tecnologia e Segurança" />
+      </div>
+      <h1>Painel de oportunidades</h1>
+      <p>Pipeline comercial de pré-venda</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Dados de referência carregados</span>
+      </div>
+      <button id="refreshBtn" onclick="refreshData()">Atualizar dados <span class="cta-arrow">→</span></button>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="panel" style="margin-bottom:24px;">
+    <p class="panel-title">Oportunidades ativas</p>
+    <div class="cards-legend">
+      <span><span class="sw" style="background:var(--danger)"></span>Mais de 10 dias sem avanço</span>
+      <span><span class="sw" style="background:var(--warn)"></span>Mais de 5 dias sem avanço</span>
+      <span><span class="sw" style="background:var(--ok)"></span>Em dia</span>
+    </div>
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel chart-panel">
+      <p class="panel-title">Quantidade de demandas por GN</p>
+      <p class="panel-hint">Clique em uma barra para ver as demandas</p>
+      <div class="chart-wrap" id="gnChartWrap">
+        <canvas id="gnCountChart" role="img" aria-label="Gráfico de barras horizontais clicável mostrando a quantidade de oportunidades por responsável (GN)">Quantidade de demandas por GN.</canvas>
+      </div>
+      <div class="detail-list" id="gnDetailList"><div class="detail-empty">Clique em um GN para ver as demandas dele.</div></div>
+    </div>
+    <div class="panel chart-panel">
+      <p class="panel-title">Quantidade de demandas por pré-vendas</p>
+      <p class="panel-hint">Clique em uma barra para ver as demandas</p>
+      <div class="chart-wrap" id="preVendasChartWrap">
+        <canvas id="preVendasCountChart" role="img" aria-label="Gráfico de barras horizontais clicável mostrando a quantidade de oportunidades por pré-vendas responsável">Quantidade de demandas por pré-vendas.</canvas>
+      </div>
+      <div class="detail-list" id="preVendasDetailList"><div class="detail-empty">Clique em um pré-vendas para ver as demandas dele.</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="panel-title">Detalhamento completo</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Oportunidade</th>
+          <th>Cliente</th>
+          <th>Responsável</th>
+          <th>Pré-vendas</th>
+          <th>Entrada</th>
+          <th>Entrega</th>
+          <th style="text-align:right;">Valor</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <footer id="footerNote">Clique em "Atualizar dados" para buscar a versão mais recente da planilha diretamente do SharePoint.</footer>
+</div>
+
+<script>
+const FILE_URI = "file:///b!RzVKg3BxpEyoNOGeetulopR0z4f2a-NEhzBIjr3lCmv-2YUqa7tBRb6mnBCwtSdO/01DXWJH7TV2BOANONDTFBJTOREK42GT5P3";
+
+const fallbackData = [
+  {nome:"UTE ITAQUI",cliente:"GRUPO ENEVA",responsavel:"Philippe Maia",tipo:"",dataEntrada:"01/10/2025",valor:0,preVendas:"Vinicius",dataEntrega:""},
+  {nome:"WHITE MARTINS - GALPÃO CAMPINAS",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"07/03/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"UFV GUAYEPO",cliente:"COSAMPA",responsavel:"Philippe Maia",tipo:"",dataEntrada:"06/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"UFV BARZALOSA",cliente:"COSAMPA",responsavel:"Philippe Maia",tipo:"",dataEntrada:"11/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"POSTO ALE - Videoconferência",cliente:"",responsavel:"Emerson Roberto Leite Coelho",tipo:"",dataEntrada:"11/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"PROJETO AUDITORIO",cliente:"ADIMAX PET (MAGNUS)",responsavel:"Emerson Roberto Leite Coelho",tipo:"",dataEntrada:"11/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"UTE AZULÃO",cliente:"GRUPO ENEVA",responsavel:"Philippe Maia",tipo:"",dataEntrada:"28/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"BYD - MANUTENÇÃO PREV-CORRET",cliente:"BYD DO BRASIL LTDA.",responsavel:"Dayane Lima",tipo:"",dataEntrada:"28/05/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"TOYOTA - PROJETO 344 CFTV/CA OEA - PLANTA GUAIBA",cliente:"TOYOTA DO BRASIL",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"05/06/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"WHITE MARTINS - JECEABA/MG",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"12/06/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"TESTE - INTEGRAÇÃO WHATSAPP",cliente:"Avantia",responsavel:"Suelane Santos",tipo:"",dataEntrada:"15/06/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"99 - PRÉDIO SAFRA",cliente:"99 Food Ltda.",responsavel:"André Henrique dos Santos",tipo:"",dataEntrada:"18/06/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"DIASE - PROLOGIS - CAXIAS II - RJ - [SISTEMA DE SEGURANÇA]",cliente:"DIASE CONSTRUÇÕES LTDA.",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"22/06/2026",valor:2974967.16,preVendas:"",dataEntrega:""},
+  {nome:"LIBRECON - BRICK ITAQUAQUECETUBA",cliente:"LIBERCON ENGENHARIA",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"22/06/2026",valor:2244518.48,preVendas:"",dataEntrega:""},
+  {nome:"HEINEKEN - ARARAQUARA - AUTOMAÇAO - INTEGRAÇÃO CFTV",cliente:"HEINEKEN",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"23/06/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"LIBERCON - PROLOGIS CAXIAS II",cliente:"LIBERCON ENGENHARIA",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"24/06/2026",valor:3064841.56,preVendas:"",dataEntrega:""},
+  {nome:"Implantação de fibras ópticas divergentes fábrica RJ",cliente:"GROUPE SEB / ARNO",responsavel:"Eder Cosmo",tipo:"",dataEntrada:"04/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"Implantação de um lance de fibra ótica",cliente:"GROUPE SEB / ARNO",responsavel:"Eder Cosmo",tipo:"",dataEntrada:"04/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"RETROFIT CFTV, CONTROLE DE ACESSO E SISTEMA PREVENÇÃO INCÊNDIO",cliente:"CENTER CARGO MANAUS - SUAPE",responsavel:"Eder Cosmo",tipo:"",dataEntrada:"06/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"ADITIVO - ALTA ORIGINAL - VISITA TÉCNICA INVENTÁRIO ESTOQUE",cliente:"GWM BRASIL GREAT WALL MOTOR",responsavel:"Dayane Lima",tipo:"",dataEntrada:"07/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"LIBERCON - Prologis Urban Logistics Park (ULP) – São Bernardo do Campo",cliente:"LIBERCON ENGENHARIA",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"07/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"POÇOS DE GÁS - SANTO ANTONIO DO LOPES",cliente:"GRUPO ENEVA",responsavel:"Philippe Maia",tipo:"",dataEntrada:"10/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"EDGE - CFTV UAR MODULAR - CUBATÃO",cliente:"EDGE",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"13/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"ADITIVO CFTV AREA DE LAZER - BRASPRESS",cliente:"BRASPRESS TRANSPORTES URGENTES LTDA",responsavel:"André Henrique dos Santos",tipo:"",dataEntrada:"16/07/2026",valor:2492.70,preVendas:"",dataEntrega:""},
+  {nome:"Projeto CFTV Auditório Sicredi Ouro Verde MT/PA",cliente:"SICREDI OURO VERDE MT - LUCAS DO RIO VERDE",responsavel:"João Rabitto",tipo:"",dataEntrada:"22/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"HEINEKEN - IGREJINHA - EXPANSÃO - CFTV DOCAS",cliente:"HEINEKEN",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"24/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"SCA de Portas do Hospital Unimed",cliente:"UNIMED - PONTA GROSSA",responsavel:"João Rabitto",tipo:"",dataEntrada:"24/07/2026",valor:48140.82,preVendas:"",dataEntrega:""},
+  {nome:"Projeto Automação Auditório Sicredi Ouro Verde",cliente:"SICREDI OURO VERDE MT - LUCAS DO RIO VERDE",responsavel:"João Rabitto",tipo:"",dataEntrada:"24/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"TATE & LYLE - Guarani - MG - CFTV",cliente:"TATE & LYLE SOLUTIONS BRASIL LTDA",responsavel:"André Henrique dos Santos",tipo:"",dataEntrada:"30/07/2026",valor:1956000.00,preVendas:"",dataEntrega:""},
+  {nome:"PROJETO CFTV GALPÃO DA FARPARIA",cliente:"GERDAU - PERNAMBUCO",responsavel:"Eder Cosmo",tipo:"",dataEntrada:"31/07/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"WHITE MARTINS - JACAREI -H2",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"03/08/2026",valor:2438391.84,preVendas:"",dataEntrega:""},
+  {nome:"LEROY MERLIN - NITEROI - ALARME",cliente:"LEROY MERLIN",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"04/08/2026",valor:85694.07,preVendas:"",dataEntrega:""},
+  {nome:"COAMO - SIDROLANDIA MS - VERTICALIZAÇÃO CFTV",cliente:"COAMO AGROINDUSTRIAL COOPERATIVA",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"05/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"COAMO - XANXERÊ SC-VERTICALIZAÇÃO CFTV",cliente:"COAMO AGROINDUSTRIAL COOPERATIVA",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"05/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"COAMO - RONCADOR PR-VERTICALIZAÇÃO CFTV",cliente:"COAMO AGROINDUSTRIAL COOPERATIVA",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"05/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"Sala de reunião no ambiente atual | Vídeo conferencia e reunião",cliente:"SICREDI SUDOESTE MT/PA - TANGARÁ DA SERRA",responsavel:"João Rabitto",tipo:"",dataEntrada:"05/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"WHITE MARTINS - JABOATÃO - HOMECARE",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"14/08/2026",valor:73266.35,preVendas:"",dataEntrega:""},
+  {nome:"SAPUCAIA DO SUL - HOMECARE",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"14/08/2026",valor:63203.70,preVendas:"",dataEntrega:""},
+  {nome:"WHITE MARTINS - CONTAGEM NOVO HOME CARE",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"14/08/2026",valor:78388.80,preVendas:"",dataEntrega:""},
+  {nome:"JUNDIAI - WHITE MARTINS",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"14/08/2026",valor:1562339.52,preVendas:"",dataEntrega:""},
+  {nome:"WHITE MARTINS - SALVADOR - SISTEMA DE SEGURANÇA ELETRONICA",cliente:"WHITE MARTINS",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"14/08/2026",valor:1894560.00,preVendas:"",dataEntrega:""},
+  {nome:"CARIOCA - Estações do BRT - DER-DF",cliente:"CARIOCA CHRISTIANI NIELSEN ENGENHARIA S A",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"18/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"RIO VERDE - CS Infra - TOU Itaim Paulista",cliente:"RIO VERDE ENGENHARIA E CONSTRUCOES LTDA",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"18/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"EUROCHEM FERTILIZANTES - SCA UNIDADE PAULISTA",cliente:"EUROCHEM FERTILIZANTES",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"19/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"6261 - HEINEKEN-ITU-SMART DOCS-POC-ENVASE",cliente:"HEINEKEN",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"21/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"ADITIVO - CANOPUS PALMAS - SERVIÇOS DESINT + REINST LED",cliente:"GWM BRASIL GREAT WALL MOTOR",responsavel:"Dayane Lima",tipo:"",dataEntrada:"21/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"EUROCHEM - MANUTENÇÃO FTO",cliente:"EUROCHEM FERTILIZANTES",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"24/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"LED - GB VOLVO MANAUS",cliente:"GB MANAUS AUTOCENTER LTDA",responsavel:"Dayane Lima",tipo:"",dataEntrada:"24/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"ABCD1 - REVENDA DE SPLITTER",cliente:"ASSOCIAÇÃO DE PROPRIETÁRIOS DO EMPREENDIMENTO ABCD1",responsavel:"Dayane Lima",tipo:"",dataEntrada:"25/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"AGRIVALLE - P&D - CFTV",cliente:"AGRIVALLE BRASIL INDUSTRIA E COMÉRCIO DE PRODUROS AGRÍCOLAS LTDA",responsavel:"André Henrique dos Santos",tipo:"",dataEntrada:"27/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"MACKENZIE - BRASILIA - ESCOLA SEGURA",cliente:"INSTITUTO PRESBITERIANO MACKENZIE",responsavel:"André Henrique dos Santos",tipo:"",dataEntrada:"27/08/2026",valor:2923116.60,preVendas:"",dataEntrega:""},
+  {nome:"COAMO - PARANAGUA - DETECTOR DE METAIS - FORNECIMENTO",cliente:"COAMO AGROINDUSTRIAL COOPERATIVA",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"28/08/2026",valor:74829.37,preVendas:"",dataEntrega:""},
+  {nome:"RFQ 018 LT04_2026: CFTV",cliente:"CPFL ENERGIA S.A.",responsavel:"Philippe Maia",tipo:"",dataEntrada:"28/08/2026",valor:4190628.68,preVendas:"",dataEntrega:""},
+  {nome:"Potenza G200 - BZLOG",cliente:"Potenza Engenharia e Construção Ltda.",responsavel:"Alexandre Soares",tipo:"",dataEntrada:"28/08/2026",valor:0,preVendas:"",dataEntrega:""},
+  {nome:"COAMO - PARANAGUA - DETECTOR DE METAIS - INSTALAÇÃO",cliente:"COAMO AGROINDUSTRIAL COOPERATIVA",responsavel:"Claudinei da Costa",tipo:"",dataEntrada:"28/08/2026",valor:32765.93,preVendas:"",dataEntrega:""}
+];
+
+let gnCountChartInstance = null;
+let preVendasCountChartInstance = null;
+
+function fmtCurrency(v){
+  return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+}
+function fmtCompact(v){
+  if(v>=1000000) return 'R$ '+(v/1000000).toFixed(2).replace('.',',')+'M';
+  if(v>=1000) return 'R$ '+(v/1000).toFixed(0)+'K';
+  return fmtCurrency(v);
+}
+function daysOpen(dataEntradaStr){
+  const parts = dataEntradaStr.split(' ')[0].split('/');
+  const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+  const entry = new Date(y, m-1, d);
+  entry.setHours(0,0,0,0);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return Math.floor((today-entry)/(1000*60*60*24));
+}
+function statusFor(days){
+  if(days>10) return 'red';
+  if(days>5) return 'yellow';
+  return 'normal';
+}
+const statusOrder = {red:0, yellow:1, normal:2};
+const statusLabel = {red:'dias sem avanço', yellow:'dias sem avanço', normal:'dias em aberto'};
+
+function parseDateBR(str){
+  if(!str || !str.trim()) return null;
+  const parts = str.trim().split(' ')[0].split('/');
+  if(parts.length!==3) return null;
+  const d = parseInt(parts[0],10), m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+  if(!d||!m||!y) return null;
+  const dt = new Date(y, m-1, d);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function daysBetweenBR(startStr, endStr){
+  const start = parseDateBR(startStr);
+  const end = parseDateBR(endStr);
+  if(!start || !end) return null;
+  return Math.round((end-start)/(1000*60*60*24));
+}
+function norm(s){
+  return (s||'').replace(/\s+/g,' ').trim();
+}
+const selection = {gn:null, preVendas:null};
+const detailPlaceholders = {
+  gn:'Clique em um GN para ver as demandas dele.',
+  preVendas:'Clique em um pré-vendas para ver as demandas dele.'
+};
+const detailElIds = {gn:'gnDetailList', preVendas:'preVendasDetailList'};
+function clearDetail(type){
+  selection[type] = null;
+  document.getElementById(detailElIds[type]).innerHTML = `<div class="detail-empty">${detailPlaceholders[type]}</div>`;
+}
+function toggleDetail(type, label, list){
+  if(selection[type]===label){
+    clearDetail(type);
+  } else {
+    selection[type] = label;
+    renderDetailList(type, label, list);
+  }
+}
+function renderDetailList(type, label, list){
+  const el = document.getElementById(detailElIds[type]);
+  const header = `<div class="detail-header"><span>${label} · ${list.length} demanda(s)</span><button class="detail-clear" onclick="clearDetail('${type}')" aria-label="Limpar seleção">Limpar ×</button></div>`;
+  if(!list.length){
+    el.innerHTML = header + `<div class="detail-empty">Nenhuma demanda encontrada.</div>`;
+    return;
+  }
+  el.innerHTML = header + list.map(d=>`<div class="detail-item"><span style="color:var(--text);">${d.nome}</span><span>${d.cliente||'—'}</span></div>`).join('');
+}
+
+function render(data, isLive){
+  selection.gn = null; selection.preVendas = null;
+  clearDetail('gn'); clearDetail('preVendas');
+
+  const total = data.reduce((s,d)=>s+d.valor,0);
+  const count = data.length;
+  const avg = total/count;
+  const max = Math.max(...data.map(d=>d.valor));
+  const maxOpp = data.find(d=>d.valor===max);
+
+  const deliveryDurations = data
+    .map(d=>daysBetweenBR(d.dataEntrada, d.dataEntrega))
+    .filter(d=>d!==null && d>=0);
+  const avgDelivery = deliveryDurations.length
+    ? Math.round(deliveryDurations.reduce((a,b)=>a+b,0)/deliveryDurations.length)
+    : null;
+
+  const kpis = document.getElementById('kpis');
+  kpis.innerHTML = `
+    <div class="kpi"><div class="kpi-label">Pipeline total</div><div class="kpi-value accent">${fmtCompact(total)}</div></div>
+    <div class="kpi"><div class="kpi-label">Oportunidades ativas</div><div class="kpi-value">${count}</div></div>
+    <div class="kpi"><div class="kpi-label">Ticket médio</div><div class="kpi-value">${fmtCompact(avg)}</div></div>
+    <div class="kpi"><div class="kpi-label">Maior oportunidade</div><div class="kpi-value">${fmtCompact(max)}</div></div>
+    <div class="kpi"><div class="kpi-label">Tempo médio de entrega</div><div class="kpi-value">${avgDelivery!==null ? avgDelivery+' dias' : 'Sem dados'}</div></div>
+  `;
+
+  const sorted = [...data].sort((a,b)=>{
+    const da = parseDateBR(a.dataEntrada);
+    const db = parseDateBR(b.dataEntrada);
+    if(!da && !db) return 0;
+    if(!da) return 1;
+    if(!db) return -1;
+    return da - db;
+  });
+
+  const withStatus = data.map(d=>{
+    const days = daysOpen(d.dataEntrada);
+    return {...d, days, status: statusFor(days)};
+  });
+  withStatus.sort((a,b)=>{
+    const s = statusOrder[a.status]-statusOrder[b.status];
+    if(s!==0) return s;
+    return b.days-a.days;
+  });
+  const cardsGrid = document.getElementById('cardsGrid');
+  cardsGrid.innerHTML = withStatus.map(d=>`
+    <div class="opp-card status-${d.status}">
+      <div class="opp-name" title="${d.nome}">${d.nome}</div>
+      <div class="opp-field"><span>Cliente</span><b>${d.cliente}</b></div>
+      <div class="opp-field"><span>GN</span><b>${d.responsavel}</b></div>
+      <div class="opp-field"><span>Entrada</span><b>${d.dataEntrada}</b></div>
+      <div class="opp-days status-${d.status}">${d.days>=0 ? d.days+' '+statusLabel[d.status] : 'entrada futura'}</div>
+    </div>
+  `).join('');
+
+  const gnCountMap = {};
+  data.forEach(d=>{ const k = norm(d.responsavel) || 'Não atribuído'; gnCountMap[k] = (gnCountMap[k]||0) + 1; });
+  const gnCountEntries = Object.entries(gnCountMap).sort((a,b)=>b[1]-a[1]);
+
+  if(gnCountChartInstance) gnCountChartInstance.destroy();
+  gnCountChartInstance = new Chart(document.getElementById('gnCountChart'), {
+    type:'bar',
+    data:{
+      labels:gnCountEntries.map(e=>e[0]),
+      datasets:[{data:gnCountEntries.map(e=>e[1]),backgroundColor:'#9AB0D6',borderRadius:4,maxBarThickness:18}]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      resizeDelay:150,
+      maintainAspectRatio:false,
+      onHover:(evt,elements)=>{ evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      onClick:(evt,elements,chart)=>{
+        if(!elements.length) return;
+        const label = chart.data.labels[elements[0].index];
+        const list = data.filter(d=>(norm(d.responsavel)||'Não atribuído')===label);
+        toggleDetail('gn', label, list);
+      },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>ctx.parsed.x+' demanda(s)'}}},
+      scales:{
+        x:{grid:{color:'#333C4A'},ticks:{color:'#B7B5B6',font:{size:11},precision:0}},
+        y:{grid:{display:false},ticks:{color:'#B7B5B6',font:{size:11},autoSkip:false}}
+      }
+    }
+  });
+
+  const preVendasCountMap = {};
+  data.forEach(d=>{
+    const key = norm(d.preVendas) || 'Não atribuído';
+    preVendasCountMap[key] = (preVendasCountMap[key]||0) + 1;
+  });
+  const preVendasCountEntries = Object.entries(preVendasCountMap).sort((a,b)=>b[1]-a[1]);
+
+  if(preVendasCountChartInstance) preVendasCountChartInstance.destroy();
+  preVendasCountChartInstance = new Chart(document.getElementById('preVendasCountChart'), {
+    type:'bar',
+    data:{
+      labels:preVendasCountEntries.map(e=>e[0]),
+      datasets:[{data:preVendasCountEntries.map(e=>e[1]),backgroundColor:'#235094',borderRadius:4,maxBarThickness:18}]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      resizeDelay:150,
+      maintainAspectRatio:false,
+      onHover:(evt,elements)=>{ evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      onClick:(evt,elements,chart)=>{
+        if(!elements.length) return;
+        const label = chart.data.labels[elements[0].index];
+        const list = data.filter(d=>(norm(d.preVendas)||'Não atribuído')===label);
+        toggleDetail('preVendas', label, list);
+      },
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>ctx.parsed.x+' demanda(s)'}}},
+      scales:{
+        x:{grid:{color:'#333C4A'},ticks:{color:'#B7B5B6',font:{size:11},precision:0}},
+        y:{grid:{display:false},ticks:{color:'#B7B5B6',font:{size:11},autoSkip:false}}
+      }
+    }
+  });
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = sorted.map(d=>`
+    <tr>
+      <td>${d.nome}</td>
+      <td>${d.cliente}</td>
+      <td>${d.responsavel}</td>
+      <td class="tag">${d.preVendas || '—'}</td>
+      <td class="tag">${d.dataEntrada}</td>
+      <td class="tag">${d.dataEntrega || '—'}</td>
+      <td class="num">${fmtCurrency(d.valor)}</td>
+    </tr>
+  `).join('');
+
+  const dot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const footerNote = document.getElementById('footerNote');
+  const now = new Date().toLocaleString('pt-BR');
+  if(isLive){
+    dot.className = 'dot';
+    statusText.textContent = 'Dados ao vivo — atualizado às ' + now;
+    footerNote.textContent = 'Última busca na planilha do SharePoint: ' + now + '. Clique em "Atualizar dados" para buscar novamente.';
+  } else {
+    dot.className = 'dot stale';
+    statusText.textContent = 'Dados de referência (snapshot local)';
+  }
+}
+
+async function fetchLiveData(){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
+      system: "Você é um agente de extração de dados. Use a ferramenta read_resource do conector Microsoft 365 para ler o recurso indicado pelo usuário. Ele é uma planilha do Excel com colunas: Nome da Oportunidade, Cliente, CNPJ, Data de Entrada, Responsável (GN), Tipo de Projeto, Preço Total, Pré Vendas, Data de Entrega. Extraia TODAS as linhas de dados (ignore a linha de cabeçalho). Se uma célula estiver vazia, use string vazia \"\" (ou 0 para valor). Responda SOMENTE com um array JSON válido, sem markdown, sem texto adicional, no formato: [{\"nome\":string,\"cliente\":string,\"responsavel\":string,\"tipo\":string,\"dataEntrada\":string (dd/mm/aaaa),\"valor\":number (apenas o número, sem R$ nem pontos de milhar, use ponto decimal),\"preVendas\":string,\"dataEntrega\":string (dd/mm/aaaa ou vazio se não preenchido)}]",
+      messages: [{role:"user", content: "Leia o recurso " + FILE_URI + " e extraia os dados conforme instruído."}],
+      mcp_servers: [{type:"url", url:"https://microsoft365.mcp.claude.com/mcp", name:"microsoft-365"}]
+    })
+  });
+  const data = await response.json();
+  const textBlocks = (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  const clean = textBlocks.replace(/```json|```/g,"").trim();
+  const jsonStart = clean.indexOf('[');
+  const jsonEnd = clean.lastIndexOf(']');
+  const parsed = JSON.parse(clean.slice(jsonStart, jsonEnd+1));
+  return parsed;
+}
+
+async function refreshData(){
+  const btn = document.getElementById('refreshBtn');
+  const dot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  btn.disabled = true;
+  dot.className = 'dot loading';
+  statusText.textContent = 'Buscando dados atualizados no SharePoint...';
+  try{
+    const live = await fetchLiveData();
+    if(Array.isArray(live) && live.length){
+      render(live, true);
+    } else {
+      throw new Error('Resposta vazia');
+    }
+  } catch(err){
+    render(fallbackData, false);
+    document.getElementById('statusText').textContent = 'Não foi possível atualizar agora — exibindo dados de referência';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+render(fallbackData, false);
+refreshData();
+</script>
+</body>
+</html>
