@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   // Falha alto e cedo em vez de deixar o app renderizar sem dados.
   // eslint-disable-next-line no-console
   console.error(
-    'Variáveis de ambiente VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY não configuradas. ' +
+    'Variáveis de ambiente SUPABASE_URL / SUPABASE_ANON_KEY não configuradas. ' +
       'Veja o .env.example.',
   );
 }

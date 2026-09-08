@@ -30,8 +30,8 @@ referência histórica — a versão em produção agora é o app em `src/`.
    ```
 
    ```env
-   VITE_SUPABASE_URL=https://SEU_PROJETO.supabase.co
-   VITE_SUPABASE_ANON_KEY=sua-anon-key-publica
+   SUPABASE_URL=https://SEU_PROJETO.supabase.co
+   SUPABASE_ANON_KEY=sua-anon-key-publica
    ```
 
    > A `anon key` é uma chave pública, mas ainda assim só deve ter acesso ao
@@ -132,8 +132,8 @@ Implementada em [`src/lib/sorting.ts`](./src/lib/sorting.ts):
 2. Na Vercel, importe o repositório — o framework Vite é detectado
    automaticamente (build command `npm run build`, output `dist`).
 3. Em *Project Settings → Environment Variables*, adicione:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
 4. Deploy. O link gerado pela Vercel pode ser compartilhado livremente com
    qualquer colaborador — não há tela de login.
 
