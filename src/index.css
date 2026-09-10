@@ -38,6 +38,14 @@ body {
   margin: 0 auto;
 }
 
+/* Aba "Planilha completa": tem muito mais colunas do que o dashboard,
+   então não faz sentido prendê-la no mesmo limite de 1180px — deixamos
+   ela usar toda a largura disponível da janela (só limitada pelo
+   padding do body) para reduzir a necessidade de rolagem horizontal. */
+.wrap-wide {
+  max-width: none;
+}
+
 header {
   display: flex;
   justify-content: space-between;
@@ -52,11 +60,11 @@ header {
 .brand {
   display: flex;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .brand-logo {
-  height: 30px;
+  height: 42px;
   width: auto;
   display: block;
 }
@@ -532,4 +540,191 @@ footer {
   margin-top: 32px;
   font-size: 12px;
   color: var(--text-dim);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Abas (Dashboard / Planilha completa)                                    */
+/* ---------------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 4px;
+  margin-right: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.tab-button:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.tab-button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Planilha completa                                                       */
+/* ---------------------------------------------------------------------- */
+
+.sheet-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.sheet-filter {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-width: 240px;
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+
+.sheet-filter:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sheet-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sheet-edited-badge {
+  color: var(--warn);
+  border-color: var(--warn);
+  background: rgba(203, 118, 46, 0.12);
+}
+
+.sheet-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.sheet-table {
+  /* table-layout: fixed + larguras vindas do <colgroup> (calculadas em
+     SpreadsheetView a partir do conteúdo de cada coluna, ou ajustadas à
+     mão arrastando o cabeçalho) fazem cada coluna nascer do tamanho do
+     que ela guarda, em vez de um valor fixo igual pra todas — nomes
+     longos (empresa, oportunidade) ganham mais espaço automaticamente, e
+     colunas curtas (CNPJ, datas) não desperdiçam espaço. Isso também vale
+     pra colunas novas que a view do Supabase vier a ganhar no futuro.
+
+     IMPORTANTE: com table-layout:fixed, o navegador só respeita as
+     larguras do <colgroup> como valores absolutos quando a largura da
+     PRÓPRIA TABELA também é (pelo menos) a soma delas — por isso o
+     componente define `style={{ width: larguraTotalTabela }}` direto no
+     elemento <table> (a soma calculada em JS). Com width:auto aqui, o
+     navegador trata as larguras do colgroup como proporções e espreme
+     todas as colunas de volta pra caber no painel, ignorando o valor em
+     pixels — o que fazia o redimensionamento manual (arrastar a borda)
+     não parecer surtir efeito nenhum. width:auto abaixo é só o valor de
+     segurança usado antes do JS calcular a largura real. Quando a soma
+     for maior que o painel, o `.sheet-scroll`/`.table-scroll` ao redor
+     rola horizontalmente; se couber, não há rolagem nenhuma. */
+  width: auto;
+  table-layout: fixed;
+  font-size: 12px;
+}
+
+.sheet-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Redimensionamento manual de coluna: arrastar a faixa fina na borda
+   direita de um cabeçalho, igual a um app de planilha.
+   Importante: `.sheet-table thead th` tem `overflow: hidden` (necessário
+   pro texto do cabeçalho cortar com "…" quando é maior que a coluna) —
+   isso RECORTA qualquer filho posicionado fora da caixa do próprio th.
+   Por isso a faixa de arrasto fica com `right: 0` (inteiramente DENTRO
+   do th), em vez de centralizada sobre a borda com metade pra fora dela:
+   a metade "de fora" ficava cortada pelo overflow:hidden e, pior, a área
+   ali pertencia de fato ao <th> da coluna seguinte — por isso o arrasto
+   não funcionava (o clique caía na coluna vizinha, não na faixa). */
+.sheet-th-resizable {
+  position: relative;
+}
+
+.sheet-col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+  user-select: none;
+  touch-action: none;
+}
+
+.sheet-col-resizer:hover,
+.sheet-col-resizer:active {
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.sheet-table td {
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.sheet-row-num {
+  text-align: right;
+  color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.sheet-cell-input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 6px 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-cell-input:hover {
+  border-color: var(--border);
+}
+
+.sheet-cell-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--panel-2);
 }
